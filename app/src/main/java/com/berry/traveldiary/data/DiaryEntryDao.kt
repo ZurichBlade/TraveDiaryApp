@@ -16,4 +16,7 @@ interface DiaryEntryDao {
     @Query("SELECT * FROM diaryEntry_table ORDER BY entryId ASC")
     fun readAllData(): MutableList<DiaryEntries>
 
+    @Query("Select * from diaryEntry_table where title like  :desc")
+    fun getSearchResults(desc: String): MutableList<DiaryEntries>
+
 }

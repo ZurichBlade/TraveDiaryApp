@@ -4,70 +4,73 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.gallery.GalleryFragment">
+    tools:context=".ui.slideshow.AboutFragment">
 
     <TextView
-        android:id="@+id/tvTheme"
+        android:id="@+id/tvdevInfo"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
-        android:gravity="start|center"
-        android:text="Theme"
-        android:textAlignment="textStart"
+        android:text="Developer Information"
+        android:textAlignment="center"
+        android:textAllCaps="true"
         android:textSize="20sp"
+        android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.03" />
+        app:layout_constraintVertical_bias="0.156" />
 
-    <ToggleButton
-        android:id="@+id/tbTheme"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tvTheme" />
 
     <TextView
-        android:id="@+id/tvNotification"
+        android:id="@+id/devName"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
-        android:gravity="start|center"
-        android:text="Notification"
-        android:textAlignment="textStart"
+        android:text="Developer name"
+        android:textAlignment="center"
         android:textSize="20sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvTheme"
-        app:layout_constraintVertical_bias="0.03" />
-
-    <ToggleButton
-        android:id="@+id/tbNotification"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/tvNotification" />
+        app:layout_constraintTop_toBottomOf="@+id/tvdevInfo"
+        app:layout_constraintVertical_bias="0.344" />
 
     <TextView
-        android:id="@+id/tvProfileInfo"
+        android:id="@+id/devEmail"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:layout_marginEnd="8dp"
-        android:gravity="start|center"
-        android:text="Profile"
-        android:textAlignment="textStart"
+        android:text="Developer email"
+        android:textAlignment="center"
         android:textSize="20sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tvNotification" />
+        app:layout_constraintTop_toBottomOf="@+id/devName" />
+
+    <TextView
+        android:id="@+id/devdesc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="8dp"
+        android:text="Developer desc"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/devEmail" />
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>

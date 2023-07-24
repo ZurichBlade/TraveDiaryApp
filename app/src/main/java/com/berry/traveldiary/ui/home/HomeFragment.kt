@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
+import android.view.Menu
+import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
@@ -12,6 +14,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.berry.traveldiary.DiaryEntryActivity
+import com.berry.traveldiary.R
 import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.FragmentHomeBinding
 import com.berry.traveldiary.model.DiaryEntries
@@ -25,7 +28,7 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private var diaryEntriesList: MutableList<DiaryEntries> = mutableListOf()
     private lateinit var myDatabase: MyDatabase
-    private var adapter = ListAdapter(diaryEntriesList)
+
 
     // This property is only valid between onCreateView and
     // onDestroyView.
@@ -35,7 +38,6 @@ class HomeFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
 
-//        val view = inflater.inflate(R.layout.fragment_home, container, false)
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
         myDatabase = MyDatabase.getDatabase(requireContext())
@@ -45,48 +47,70 @@ class HomeFragment : Fragment() {
                 if (result.resultCode == Activity.RESULT_OK) {
                     val intent = result.data
                     // Handle the Intent
-                    /*refersh the list for new entries*/
-
-                    Toast.makeText(requireContext(), "On result .", Toast.LENGTH_LONG)
-                        .show()
                     getDiaryList()
                 }
             }
 
 
-        adapter = ListAdapter(diaryEntriesList)
-        val recyclerView = binding.recyclerview
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-        recyclerView.adapter = adapter
-
-        getDiaryList()
-
-
-
 
         binding.floatingActionButton.setOnClickListener {
-
             startForResult.launch(Intent(requireContext(), DiaryEntryActivity::class.java))
-//            val intent = Intent(requireContext(), DiaryEntryActivity::class.java)
-//            startActivity(intent)
         }
 
 
         return root
     }
 
-    override fun onResume() {
-        super.onResume()
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        getDiaryList()
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        val search = menu.findItem(R.id.searchItems)
+        val searchView = search.actionView as androidx.appcompat.widget.SearchView
+        searchView.isSubmitButtonEnabled = true
+        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.
+        SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                if (query != null) {
+                    getItemsFromDb(query)
+                }
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText != null) {
+                    getItemsFromDb(newText)
+                }
+                return true
+            }
+
+        })
+    }
+
+    private fun getItemsFromDb(searchText: String) {
+        var searchText = searchText
+        searchText = "%$searchText%"
+
+        CoroutineScope(Dispatchers.IO).launch {
+            diaryEntriesList = myDatabase.diaryEntryDao().getSearchResults(searchText)
+        }.invokeOnCompletion {  Toast.makeText(requireContext(), "search completed>>."+diaryEntriesList, Toast.LENGTH_LONG).show() }
+
 
     }
 
+
     private fun getDiaryList() {
+        val recyclerView = binding.recyclerview
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
         CoroutineScope(Dispatchers.IO).launch {
-//            diaryEntriesList.clear()
             diaryEntriesList = myDatabase.diaryEntryDao().readAllData()
-            activity?.runOnUiThread {
-                adapter.notifyDataSetChanged()
-            }
+        }.invokeOnCompletion {
+            val myAdapter = ListAdapter(diaryEntriesList)
+            recyclerView.adapter = myAdapter
         }
     }
 
