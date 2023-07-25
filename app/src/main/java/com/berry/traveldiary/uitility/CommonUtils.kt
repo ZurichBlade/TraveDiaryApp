@@ -1,12 +1,16 @@
 package com.berry.traveldiary.uitility
 
 import android.content.Context
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.google.android.material.snackbar.Snackbar
 
-class CommonUtils {
+object CommonUtils {
 
 
-    val PREFERENCES: String = "MySharedPref"
+    const val PREFERENCES: String = "MySharedPref"
+    const val NO_IMAGE: String = "no_image"
+
 
     fun setStringPref(key: String, value: String, context: Context) {
         val sharedPreferences =
@@ -22,6 +26,12 @@ class CommonUtils {
             context.getSharedPreferences(PREFERENCES, AppCompatActivity.MODE_PRIVATE)
         return sharedPreferences.getString(key, "")
 
+    }
+
+    fun showToast(view: View, message: String) {
+        Snackbar.make(view, message, Snackbar.LENGTH_LONG)
+            .setAction("Action", null)
+            .show()
     }
 
 }

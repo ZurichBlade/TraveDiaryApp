@@ -1,8 +1,10 @@
 package com.berry.traveldiary
 
 import android.Manifest
+import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.Location
@@ -17,6 +19,14 @@ import androidx.core.app.ActivityCompat
 import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.ActivityDiaryEntryBinding
 import com.berry.traveldiary.model.DiaryEntries
+import com.google.android.gms.common.api.ApiException
+import com.google.android.gms.common.api.ResolvableApiException
+import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
+import com.google.android.gms.location.LocationRequest.create
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
+import com.google.android.gms.location.LocationSettingsStatusCodes
+import com.google.android.gms.location.SettingsClient
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -24,16 +34,18 @@ import kotlinx.coroutines.launch
 import java.util.Locale
 
 
-class DiaryEntryActivity : AppCompatActivity() {
+class DiaryEntryActivity : AppCompatActivity(), LocationListener {
 
     private lateinit var binding: ActivityDiaryEntryBinding
     private lateinit var myDatabase: MyDatabase
-    private var currentLocation: Location? = null
     lateinit var locationManager: LocationManager
+    private val LOCATION_REQUEST_CODE = 1001
 
-    private var locationByGps: Location? = null
-    private var locationByNetwork: Location? = null
-    private var currentLocationString: String? = null
+    companion object {
+        private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
+        private const val MIN_TIME_BETWEEN_UPDATES = 1000L // 1 second
+        private const val MIN_DISTANCE_CHANGE_FOR_UPDATES = 1f // 1 meter
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,120 +56,98 @@ class DiaryEntryActivity : AppCompatActivity() {
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        val hasGps = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-        val hasNetwork = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
 
 
-//        if (isLocationPermissionGranted()) {
-        if (hasGps) {
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                return
-            }
-            locationManager.requestLocationUpdates(
-                LocationManager.GPS_PROVIDER,
-                5000,
-                0F,
-                gpsLocationListener
+        checkLocationSettings()
+
+
+        // Check for location permissions and request if not granted
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
+                LOCATION_PERMISSION_REQUEST_CODE
             )
-        }
-
-        if (hasNetwork) {
-            locationManager.requestLocationUpdates(
-                LocationManager.NETWORK_PROVIDER,
-                5000,
-                0F,
-                networkLocationListener
-            )
-        }
-//        }
-
-
-        val lastKnownLocationByGps =
-            locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER)
-        lastKnownLocationByGps?.let {
-            locationByGps = lastKnownLocationByGps
-        }
-//------------------------------------------------------//
-        val lastKnownLocationByNetwork =
-            locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER)
-        lastKnownLocationByNetwork?.let {
-            locationByNetwork = lastKnownLocationByNetwork
-        }
-//------------------------------------------------------//
-        if (locationByGps != null && locationByNetwork != null) {
-            if (locationByGps!!.accuracy > locationByNetwork!!.accuracy) {
-                currentLocation = locationByGps
-                val latitude = currentLocation?.latitude
-                val longitude = currentLocation?.longitude
-                currentLocationString =
-                    getCompleteAddressString(latitude!!.toDouble(), longitude!!.toDouble())
-                // use latitude and longitude as per your need
-            } else {
-                currentLocation = locationByNetwork
-                val latitude = currentLocation?.latitude
-                val longitude = currentLocation?.longitude
-                currentLocationString =
-                    getCompleteAddressString(latitude!!.toDouble(), longitude!!.toDouble())
-                // use latitude and longitude as per your need
-            }
         } else {
-            /*temp code*/
-
-//            currentLocation = locationByGps
-//            val latitude = currentLocation?.latitude
-//            val longitude = currentLocation?.longitude
-//            currentLocationString =
-//                getCompleteAddressString(latitude!!.toDouble(), longitude!!.toDouble())
-        }
-
-        if (currentLocationString != null) {
-            binding.edtLocation.setText(currentLocationString)
+            startLocationUpdates()
         }
 
 
-
-
-
+        //saving the diary entry
         binding.btnSave.setOnClickListener {
             it?.apply { isEnabled = false; postDelayed({ isEnabled = true }, 400) }
             saveDiaryEntry(it)
         }
 
-
     }
 
-
-    val gpsLocationListener: LocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            locationByGps = location
+    private fun checkLocationSettings() {
+        val locationRequest = create().apply {
+            priority = PRIORITY_HIGH_ACCURACY
         }
 
-        override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
-        override fun onProviderEnabled(provider: String) {}
-        override fun onProviderDisabled(provider: String) {}
-    }
+        val builder = LocationSettingsRequest.Builder()
+            .addLocationRequest(locationRequest)
+            .setAlwaysShow(true)
 
-    val networkLocationListener: LocationListener = object : LocationListener {
-        override fun onLocationChanged(location: Location) {
-            locationByNetwork = location
+        val client: SettingsClient = LocationServices.getSettingsClient(this)
+        val task = client.checkLocationSettings(builder.build())
+
+        task.addOnCompleteListener {
+            try {
+                val response = it.getResult(ApiException::class.java)
+                // All location settings are satisfied. You can request location updates here.
+                // Start your location updates function or any other location-related functionality.
+            } catch (exception: ApiException) {
+                when (exception.statusCode) {
+                    LocationSettingsStatusCodes.RESOLUTION_REQUIRED -> {
+                        // Location settings are not satisfied, but this can be fixed by showing
+                        // the user a dialog.
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            val resolvable: ResolvableApiException =
+                                exception as ResolvableApiException
+                            resolvable.startResolutionForResult(
+                                this@DiaryEntryActivity,
+                                LOCATION_REQUEST_CODE
+                            )
+                        } catch (sendEx: IntentSender.SendIntentException) {
+                            // Ignore the error.
+                        }
+                    }
+
+                    LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE -> {
+                        // Location settings are not satisfied. However, we have no way to fix
+                        // the settings, so we won't show the dialog.
+                    }
+                }
+            }
         }
-
-        override fun onStatusChanged(provider: String, status: Int, extras: Bundle) {}
-        override fun onProviderEnabled(provider: String) {}
-        override fun onProviderDisabled(provider: String) {}
     }
 
+    private fun startLocationUpdates() {
+        binding.progressBar.visibility = View.VISIBLE
+        try {
+            // Request location updates
+            locationManager.requestLocationUpdates(
+                LocationManager.GPS_PROVIDER,
+                MIN_TIME_BETWEEN_UPDATES,
+                MIN_DISTANCE_CHANGE_FOR_UPDATES.toFloat(),
+                this
+            )
+        } catch (e: SecurityException) {
+            e.printStackTrace()
+        }
+    }
 
     private fun saveDiaryEntry(view: View) {
         if (isValid(view)) {
-            insertTOdb()
+            insertTOdb(view)
         }
 
     }
@@ -185,24 +175,24 @@ class DiaryEntryActivity : AppCompatActivity() {
         return strAdd
     }
 
-    private fun insertTOdb() {
+    private fun insertTOdb(view: View) {
         val title = binding.edtTitle.text.toString()
         val date = binding.edtDate.text.toString()
         val location = binding.edtLocation.text.toString()
         val desc = binding.edtDesc.text.toString()
 
-
         val diaryEntries = DiaryEntries(0, title, date, location, desc)
 
         CoroutineScope(Dispatchers.IO).launch {
             myDatabase.diaryEntryDao().addDiaryEntry(diaryEntries)
+        }.invokeOnCompletion {
+            Snackbar.make(view, "New Diary Entry Added", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+            val returnIntent = Intent()
+            returnIntent.putExtra("result", 122)
+            setResult(RESULT_OK, returnIntent)
+            finish()
         }
-
-        val returnIntent = Intent()
-        returnIntent.putExtra("result", 122)
-        setResult(RESULT_OK, returnIntent)
-        finish()
-
 
 
     }
@@ -235,28 +225,32 @@ class DiaryEntryActivity : AppCompatActivity() {
 
     }
 
-    private fun isLocationPermissionGranted(): Boolean {
-        return if (ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_COARSE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(
-                this,
-                android.Manifest.permission.ACCESS_FINE_LOCATION
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
-            ActivityCompat.requestPermissions(
-                this,
-                arrayOf(
-                    android.Manifest.permission.ACCESS_FINE_LOCATION,
-                    android.Manifest.permission.ACCESS_COARSE_LOCATION
-                ),
-                121
-            )
-            false
-        } else {
-            true
-        }
+
+    override fun onLocationChanged(location: Location) {
+        binding.progressBar.visibility = View.GONE
+        val latitude = location.latitude
+        val longitude = location.longitude
+        val stringLocation = getCompleteAddressString(latitude, longitude)
+        binding.edtLocation.setText(stringLocation)
+
     }
 
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == LOCATION_REQUEST_CODE) {
+            if (resultCode == Activity.RESULT_OK) {
+
+                startLocationUpdates()
+
+                // The user has enabled the location settings.
+                // You can now start your location updates function or any other location-related functionality.
+            } else {
+                binding.progressBar.visibility = View.GONE
+                // The user has not enabled the location settings.
+                // You can handle this situation as per your app's requirement.
+            }
+        }
+    }
 }
+

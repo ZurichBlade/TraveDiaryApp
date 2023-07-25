@@ -1,20 +1,30 @@
 package com.berry.traveldiary.ui.home
 
+import android.annotation.SuppressLint
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.AdapterView.OnItemClickListener
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.berry.traveldiary.R
 import com.berry.traveldiary.model.DiaryEntries
 
 
-class ListAdapter(private val mList: MutableList<DiaryEntries>) :
+class ListAdapter(
+    private val mList: MutableList<DiaryEntries>,
+    onItemClickListener: OnItemClickListener
+) :
     RecyclerView.Adapter<ListAdapter.ViewHolder>() {
 
-    private var userList = mList
 
-//    class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {}
+    private var monItemClickListener: OnItemClickListener = onItemClickListener
+    private var userList = mList
+    private val userListCopy: MutableList<DiaryEntries> = ArrayList()
+
+    init {
+        userListCopy.addAll(userList)
+    }
 
 
     // Holds the views for adding it to image and text
@@ -32,13 +42,29 @@ class ListAdapter(private val mList: MutableList<DiaryEntries>) :
 
         return ViewHolder(view)
 
-//        return MyViewHolder(
-//            LayoutInflater.from(parent.context).inflate(R.layout.custom_row, parent, false)
-//        )
     }
 
     override fun getItemCount(): Int {
         return userList.size
+    }
+
+    @SuppressLint("NotifyDataSetChanged")
+    fun filter(text: String) {
+        var text1 = text
+        userList.clear()
+        if (text1.isEmpty()) {
+            mList.addAll(userListCopy)
+        } else {
+            text1 = text1.lowercase()
+            for (item in userListCopy) {
+                if (item.title.lowercase().contains(text1) || item.location.lowercase()
+                        .contains(text1)
+                ) {
+                    userList.add(item)
+                }
+            }
+        }
+        notifyDataSetChanged()
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
@@ -48,22 +74,12 @@ class ListAdapter(private val mList: MutableList<DiaryEntries>) :
         holder.tvName.text = currentItem.title
         holder.tvEmail.text = currentItem.location
 
-//        holder.itemView.findViewById<TextView>(R.id.tvId).text = currentItem.entryId.toString()
-//        holder.itemView.findViewById<TextView>(R.id.firstName_txt).text =
-//            currentItem.location.toString()
-//        holder.itemView.id_txt.text = currentItem.id.toString()
-//        holder.itemView.firstName_txt.text = currentItem.firstName
-//        holder.itemView.lastName_txt.text = currentItem.lastName
-//        holder.itemView.age_txt.text = currentItem.age.toString()
-
-//        holder.itemView.rowLayout.setOnClickListener {
-////            val action = ListFragmentDirections.actionListFragmentToUpdateFragment(currentItem)
-////            holder.itemView.findNavController().navigate(action)
-//        }
+        holder.itemView.setOnClickListener {
+            monItemClickListener.monItemClickListener(position)
+        }
     }
 
-//    fun setData(user: List<DiaryEntries>) {
-//        this.userList = user
-//        notifyDataSetChanged()
-//    }
+    interface OnItemClickListener {
+        fun monItemClickListener(position: Int)
+    }
 }

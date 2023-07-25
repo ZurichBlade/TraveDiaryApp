@@ -5,13 +5,15 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.berry.traveldiary.model.DiaryEntries
+import com.berry.traveldiary.model.Photos
 import com.berry.traveldiary.model.User
 
-@Database(entities = [User::class, DiaryEntries::class], version = 1, exportSchema = false)
+@Database(entities = [User::class, DiaryEntries::class, Photos::class], version = 1, exportSchema = false)
 abstract class MyDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao
     abstract fun diaryEntryDao(): DiaryEntryDao
+    abstract fun photosDao(): PhotosDao
 
     companion object {
         @Volatile

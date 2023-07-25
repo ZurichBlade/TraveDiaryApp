@@ -3,18 +3,17 @@ package com.berry.traveldiary.ui.home
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.berry.traveldiary.DiaryEntryActivity
-import com.berry.traveldiary.R
+import com.berry.traveldiary.PhotoGalleryActivity
 import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.FragmentHomeBinding
 import com.berry.traveldiary.model.DiaryEntries
@@ -28,6 +27,7 @@ class HomeFragment : Fragment() {
     private lateinit var homeViewModel: HomeViewModel
     private var diaryEntriesList: MutableList<DiaryEntries> = mutableListOf()
     private lateinit var myDatabase: MyDatabase
+    private lateinit var listAdapter: ListAdapter
 
 
     // This property is only valid between onCreateView and
@@ -65,31 +65,22 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         getDiaryList()
-    }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        val search = menu.findItem(R.id.searchItems)
-        val searchView = search.actionView as androidx.appcompat.widget.SearchView
-        searchView.isSubmitButtonEnabled = true
-        searchView.setOnQueryTextListener(object : androidx.appcompat.widget.
-        SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query != null) {
-                    getItemsFromDb(query)
-                }
-                return true
+        binding.searchBar.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
             }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText != null) {
-                    getItemsFromDb(newText)
-                }
-                return true
+            override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
+                listAdapter.filter(p0.toString())
+            }
+
+            override fun afterTextChanged(p0: Editable?) {
+                listAdapter.filter(p0.toString())
             }
 
         })
     }
+
 
     private fun getItemsFromDb(searchText: String) {
         var searchText = searchText
@@ -97,7 +88,7 @@ class HomeFragment : Fragment() {
 
         CoroutineScope(Dispatchers.IO).launch {
             diaryEntriesList = myDatabase.diaryEntryDao().getSearchResults(searchText)
-        }.invokeOnCompletion {  Toast.makeText(requireContext(), "search completed>>."+diaryEntriesList, Toast.LENGTH_LONG).show() }
+        }.invokeOnCompletion { }
 
 
     }
@@ -109,10 +100,19 @@ class HomeFragment : Fragment() {
         CoroutineScope(Dispatchers.IO).launch {
             diaryEntriesList = myDatabase.diaryEntryDao().readAllData()
         }.invokeOnCompletion {
-            val myAdapter = ListAdapter(diaryEntriesList)
-            recyclerView.adapter = myAdapter
+            listAdapter = ListAdapter(diaryEntriesList, itemClickListener)
+            recyclerView.adapter = listAdapter
         }
     }
+
+    private val itemClickListener: ListAdapter.OnItemClickListener =
+        object : ListAdapter.OnItemClickListener {
+            override fun monItemClickListener(position: Int) {
+                val intent = Intent(requireContext(), PhotoGalleryActivity::class.java)
+                startActivity(intent)
+            }
+
+        }
 
     override fun onDestroyView() {
         super.onDestroyView()
