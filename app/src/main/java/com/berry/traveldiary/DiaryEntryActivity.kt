@@ -19,6 +19,8 @@ import androidx.core.app.ActivityCompat
 import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.ActivityDiaryEntryBinding
 import com.berry.traveldiary.model.DiaryEntries
+import com.berry.traveldiary.model.User
+import com.berry.traveldiary.uitility.CommonUtils
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -28,6 +30,7 @@ import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.location.LocationSettingsStatusCodes
 import com.google.android.gms.location.SettingsClient
 import com.google.android.material.snackbar.Snackbar
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -74,6 +77,10 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
             )
         } else {
             startLocationUpdates()
+        }
+
+        binding.edtDate.setOnClickListener {
+            CommonUtils.openDatePicker(binding.edtDate, supportFragmentManager)
         }
 
 
@@ -181,19 +188,27 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
         val location = binding.edtLocation.text.toString()
         val desc = binding.edtDesc.text.toString()
 
-        val diaryEntries = DiaryEntries(0, title, date, location, desc)
 
-        CoroutineScope(Dispatchers.IO).launch {
-            myDatabase.diaryEntryDao().addDiaryEntry(diaryEntries)
-        }.invokeOnCompletion {
-            Snackbar.make(view, "New Diary Entry Added", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
-            val returnIntent = Intent()
-            returnIntent.putExtra("result", 122)
-            setResult(RESULT_OK, returnIntent)
-            finish()
+        val loginData = CommonUtils.getStringPref(CommonUtils.PREF_LOGIN, this)
+        Log.d("TAG", "loginData>>$loginData")
+        if (!TextUtils.isEmpty(loginData)) {
+            val user: User = Gson().fromJson(loginData, User::class.java)
+
+
+            val diaryEntries = DiaryEntries(0, title, date, location, desc, user.id)
+
+
+            CoroutineScope(Dispatchers.IO).launch {
+                myDatabase.diaryEntryDao().addDiaryEntry(diaryEntries)
+            }.invokeOnCompletion {
+                Snackbar.make(view, "New Diary Entry Added", Snackbar.LENGTH_LONG)
+                    .setAction("Action", null).show()
+                val returnIntent = Intent()
+                returnIntent.putExtra("result", 122)
+                setResult(RESULT_OK, returnIntent)
+                finish()
+            }
         }
-
 
     }
 

@@ -67,6 +67,7 @@ class GalleryAdapter(
         holder.btnUpdate.setOnClickListener {
             mSaveClickListener.mSaveClickListener(
                 position,
+                photosList[position].photoId,
                 photosList[position].imagePath,
                 holder.caption.text.toString(),
                 holder.imageView,
@@ -77,6 +78,7 @@ class GalleryAdapter(
         holder.btnDelete.setOnClickListener {
             mSaveClickListener.mSaveClickListener(
                 position,
+                photosList[position].photoId,
                 photosList[position].imagePath,
                 holder.caption.text.toString(),
                 holder.imageView,
@@ -95,7 +97,7 @@ class GalleryAdapter(
     }
 
     interface SaveClickListener {
-        fun mSaveClickListener(position: Int, imagepath: String, desc: String, view: View,isforDelete: Boolean)
+        fun mSaveClickListener(position: Int,photoId: Int, imagepath: String, desc: String, view: View,isforDelete: Boolean)
     }
 
 

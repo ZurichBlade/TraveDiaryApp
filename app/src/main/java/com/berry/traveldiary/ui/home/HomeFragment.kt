@@ -4,7 +4,9 @@ import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
+import android.text.TextUtils
 import android.text.TextWatcher
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,6 +19,11 @@ import com.berry.traveldiary.PhotoGalleryActivity
 import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.FragmentHomeBinding
 import com.berry.traveldiary.model.DiaryEntries
+import com.berry.traveldiary.model.User
+import com.berry.traveldiary.uitility.CommonUtils
+import com.berry.traveldiary.uitility.CommonUtils.getStringPref
+import com.berry.traveldiary.uitility.CommonUtils.setStringPref
+import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -95,21 +102,30 @@ class HomeFragment : Fragment() {
 
 
     private fun getDiaryList() {
+
+        val loginData = getStringPref(CommonUtils.PREF_LOGIN, requireContext())
+        Log.d("TAG", "loginData>>$loginData")
+        if (!TextUtils.isEmpty(loginData)) {
+            val user: User = Gson().fromJson(loginData, User::class.java)
+
+
         val recyclerView = binding.recyclerview
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
         CoroutineScope(Dispatchers.IO).launch {
-            diaryEntriesList = myDatabase.diaryEntryDao().readAllData()
+            diaryEntriesList = myDatabase.diaryEntryDao().getDiaryEntryForUser(user.id)
         }.invokeOnCompletion {
             listAdapter = ListAdapter(diaryEntriesList, itemClickListener)
             recyclerView.adapter = listAdapter
+        }
         }
     }
 
     private val itemClickListener: ListAdapter.OnItemClickListener =
         object : ListAdapter.OnItemClickListener {
-            override fun monItemClickListener(position: Int) {
+            override fun monItemClickListener(position: Int, entryId: Int) {
                 val intent = Intent(requireContext(), PhotoGalleryActivity::class.java)
                 startActivity(intent)
+                setStringPref(CommonUtils.PREF_ENTRY_ID, entryId.toString(), requireContext())
             }
 
         }

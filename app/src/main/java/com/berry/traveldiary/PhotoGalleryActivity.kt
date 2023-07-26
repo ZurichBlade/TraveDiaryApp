@@ -28,12 +28,8 @@ class PhotoGalleryActivity : AppCompatActivity() {
     private lateinit var myDatabase: MyDatabase
     private var imagePosition: Int = -1
     private var photoId: Int = 0
+    private var entryId = -1
 
-//    private val images = listOf(
-//        R.drawable.ic_menu_gallery,
-//        R.drawable.ic_menu_gallery,
-//        R.drawable.ic_menu_gallery,
-//    )
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,25 +39,24 @@ class PhotoGalleryActivity : AppCompatActivity() {
         myDatabase = MyDatabase.getDatabase(this@PhotoGalleryActivity)
 
 
+        val pEntryId = CommonUtils.getStringPref(CommonUtils.PREF_ENTRY_ID, this)
+        if (pEntryId != null) {
+            entryId = pEntryId.toInt()
+        }
 
 
 
         CoroutineScope(Dispatchers.IO).launch {
-            imagesList = myDatabase.photosDao().readAllData()
+            imagesList = myDatabase.photosDao().getPhotosById(entryId)
         }.invokeOnCompletion {
             binding.viewPager
             adapter = GalleryAdapter(imagesList, itemClickListener, itemSaveClickListener)
             binding.viewPager.adapter = adapter
 
             if (imagesList.size < 1) {
-                imagesList.add(Photos(0, 0, NO_IMAGE, ""))
+                imagesList.add(Photos(0, entryId, NO_IMAGE, ""))
             }
         }
-
-
-//        binding.viewPager
-//        adapter = GalleryAdapter(imagesList, itemClickListener, itemSaveClickListener)
-//        binding.viewPager.adapter = adapter
 
 
     }
@@ -78,9 +73,10 @@ class PhotoGalleryActivity : AppCompatActivity() {
 
                 if (forAddBlank) {
                     if (imagesList.size < 4) {
-                        imagesList.add(position + 1, Photos(0, 0, NO_IMAGE, ""))
+                        imagesList.add(position + 1, Photos(0, entryId, NO_IMAGE, ""))
                         adapter.notifyDataSetChanged()
-                        CommonUtils.showToast(view, "Swipe right.")
+                        val newPosition = adapter.itemCount - 1
+                        binding.viewPager.setCurrentItem(newPosition, true)
                     } else {
                         CommonUtils.showToast(view, "You can't add more than 4 photos.")
                     }
@@ -101,14 +97,18 @@ class PhotoGalleryActivity : AppCompatActivity() {
     private val itemSaveClickListener: GalleryAdapter.SaveClickListener =
         object : GalleryAdapter.SaveClickListener {
             override fun mSaveClickListener(
-                position: Int, imagepath: String, desc: String, view: View, isforDelete: Boolean
+                position: Int,
+                photoId: Int,
+                imagepath: String,
+                desc: String,
+                view: View,
+                isforDelete: Boolean
             ) {
 
                 if (isforDelete) {
                     imagesList.removeAt(position)
-                    val itemToDelete = Photos(0, 0, NO_IMAGE, "")
                     GlobalScope.launch(Dispatchers.IO) {
-                        myDatabase.photosDao().delete(itemToDelete)
+                        myDatabase.photosDao().deleteByPhotoId(photoId)
                     }.invokeOnCompletion {
                         runOnUiThread {
                             adapter.notifyDataSetChanged()
@@ -123,10 +123,15 @@ class PhotoGalleryActivity : AppCompatActivity() {
                     } else if (desc.isEmpty()) {
                         CommonUtils.showToast(view, "Please Enter Caption")
                     } else {
-                        val photos = Photos(imagePosition, 0, imagepath, desc)
+                        val photos = Photos(position, entryId, imagepath, desc)
                         CoroutineScope(Dispatchers.IO).launch {
                             myDatabase.photosDao().addPhotoData(photos)
-                        }.invokeOnCompletion { CommonUtils.showToast(view, "Saved Successfully..") }
+                        }.invokeOnCompletion {
+                            CommonUtils.showToast(
+                                view,
+                                "Saved Successfully.."
+                            )
+                        }
                     }
                 }
             }
@@ -138,27 +143,11 @@ class PhotoGalleryActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK) {
             //Image Uri will not be null for RESULT_OK
             val uri: Uri = data?.data!!
-
-            // Use Uri object instead of File to avoid storage permissions
-//            imgProfile.setImageURI(fileUri)
-
+            
             if (imagePosition != -1) {
                 imagesList[imagePosition].imagePath = uri.toString()
                 adapter.notifyDataSetChanged()
             }
-
-
-////            images.add(uri)
-//            imagesList.add(imagePosition, Photos(0, 0, uri.toString(), ""))
-//            adapter.notifyDataSetChanged()
-
-//            val photos = Photos(imagePosition, 0, uri.toString(), "")
-//            CoroutineScope(Dispatchers.IO).launch {
-//                myDatabase.photosDao().addPhotoData(photos)
-//            }
-
-//            val photos = Photos(0, 0, uri.toString(), "")
-
 
         } else if (resultCode == ImagePicker.RESULT_ERROR) {
             Toast.makeText(this, ImagePicker.getError(data), Toast.LENGTH_SHORT).show()

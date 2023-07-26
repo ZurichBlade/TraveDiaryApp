@@ -13,9 +13,9 @@
 
     <fragment
         android:id="@+id/nav_gallery"
-        android:name="com.berry.traveldiary.ui.gallery.GalleryFragment"
+        android:name="com.berry.traveldiary.ui.setting.SettingFragment"
         android:label="@string/menu_setting"
-        tools:layout="@layout/fragment_gallery" />
+        tools:layout="@layout/fragment_setting" />
 
     <fragment
         android:id="@+id/nav_slideshow"

@@ -75,11 +75,11 @@ class ListAdapter(
         holder.tvEmail.text = currentItem.location
 
         holder.itemView.setOnClickListener {
-            monItemClickListener.monItemClickListener(position)
+            monItemClickListener.monItemClickListener(position,userList[position].entryId)
         }
     }
 
     interface OnItemClickListener {
-        fun monItemClickListener(position: Int)
+        fun monItemClickListener(position: Int, entryId: Int)
     }
 }

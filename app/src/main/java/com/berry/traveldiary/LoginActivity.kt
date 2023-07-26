@@ -11,6 +11,7 @@ import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.ActivityLoginBinding
 import com.berry.traveldiary.model.DiaryEntries
 import com.berry.traveldiary.model.User
+import com.berry.traveldiary.uitility.CommonUtils.PREF_LOGIN
 import com.berry.traveldiary.viewmodel.UserViewModel
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
@@ -33,7 +34,7 @@ class LoginActivity : AppCompatActivity() {
         myDatabase = MyDatabase.getDatabase(this@LoginActivity)
 
 
-        val loginData = getStringPref("login_info", this)
+        val loginData = getStringPref(PREF_LOGIN, this)
         Log.d("TAG", "loginData>>$loginData")
         if (!TextUtils.isEmpty(loginData)) {
             val user: User = Gson().fromJson(loginData, User::class.java)
@@ -94,7 +95,7 @@ class LoginActivity : AppCompatActivity() {
                 //get user data.
                 val userData = myDatabase.userDao().getUser(userName)
                 Log.d("TAG", ">>" + userData.email)
-                setStringPref("login_info", Gson().toJson(userData), this@LoginActivity)
+                setStringPref(PREF_LOGIN, Gson().toJson(userData), this@LoginActivity)
                 runOnUiThread {
                     val intent = Intent(this@LoginActivity, DrawerActivity::class.java)
                     startActivity(intent)

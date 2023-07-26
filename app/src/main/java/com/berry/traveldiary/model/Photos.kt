@@ -5,13 +5,13 @@ import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "photos_table"
-    /*foreignKeys = [ForeignKey(
+    tableName = "photos_table",
+    foreignKeys = [ForeignKey(
         entity = DiaryEntries::class,
         parentColumns = ["entryId"],
         childColumns = ["entryId"],
         onDelete = ForeignKey.CASCADE
-    )]*/
+    )]
 )
 data class Photos(
     @PrimaryKey(autoGenerate = true)

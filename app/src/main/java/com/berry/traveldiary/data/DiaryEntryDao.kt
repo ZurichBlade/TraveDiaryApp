@@ -1,11 +1,11 @@
 package com.berry.traveldiary.data
 
-import androidx.lifecycle.LiveData
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.berry.traveldiary.model.DiaryEntries
+import com.berry.traveldiary.model.User
 
 @Dao
 interface DiaryEntryDao {
@@ -18,5 +18,9 @@ interface DiaryEntryDao {
 
     @Query("Select * from diaryEntry_table where title like  :desc")
     fun getSearchResults(desc: String): MutableList<DiaryEntries>
+
+    @Query("SELECT * FROM diaryEntry_table WHERE id = :id")
+    fun getDiaryEntryForUser(id: Int): MutableList<DiaryEntries>
+
 
 }

@@ -1,4 +1,4 @@
-package com.berry.traveldiary.ui.gallery
+package com.berry.traveldiary.ui.setting
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
