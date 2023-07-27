@@ -16,6 +16,7 @@ import androidx.navigation.ui.setupWithNavController
 import com.berry.traveldiary.databinding.ActivityDrawerBinding
 import com.berry.traveldiary.model.User
 import com.berry.traveldiary.uitility.CommonUtils
+import com.berry.traveldiary.uitility.CommonUtils.PREFERENCES
 import com.berry.traveldiary.uitility.CommonUtils.getStringPref
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.imageview.ShapeableImageView
@@ -38,10 +39,6 @@ class DrawerActivity : AppCompatActivity() {
         setSupportActionBar(binding.appBarDrawer.toolbar)
 
 
-        /* binding.appBarDrawer.fab.setOnClickListener { view ->
-             Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                 .setAction("Action", null).show()
-         }*/
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val navController = findNavController(R.id.nav_host_fragment_content_drawer)
@@ -64,10 +61,12 @@ class DrawerActivity : AppCompatActivity() {
             }
 
             override fun onDrawerOpened(drawerView: View) {
-                val Img = getStringPref(CommonUtils.PREF_USER_IMG, this@DrawerActivity)
-                if (Img != null) {
-                    headerLayout.findViewById<ShapeableImageView>(R.id.imageView)
-                        .setImageURI(Img.toUri())
+                val img = getStringPref(CommonUtils.PREF_USER_IMG, this@DrawerActivity)
+                if (img != null) {
+                    if (img.isNotEmpty()) {
+                        headerLayout.findViewById<ShapeableImageView>(R.id.imageView)
+                            .setImageURI(img.toUri())
+                    }
                 }
             }
 
@@ -90,7 +89,7 @@ class DrawerActivity : AppCompatActivity() {
         }
 
 
-        binding.btnLogout.setOnClickListener {
+        binding.clLogout.setOnClickListener {
             MaterialAlertDialogBuilder(this)
                 .setTitle("Log Out")
                 .setMessage(resources.getString(R.string.str_logout))
@@ -108,7 +107,7 @@ class DrawerActivity : AppCompatActivity() {
     }
 
     private fun callLogout() {
-        val preferences = getSharedPreferences("MySharedPref", MODE_PRIVATE)
+        val preferences = getSharedPreferences(PREFERENCES, MODE_PRIVATE)
         val editor = preferences.edit()
         editor.clear()
         editor.apply()

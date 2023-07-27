@@ -1,11 +1,18 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Base application theme. -->
     <style name="Base.Theme.TravelDiary" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Customize your light theme here. -->
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.TravelDiary" parent="Base.Theme.TravelDiary" />
+
+    <style name="Theme.TravelDiary" parent="Base.Theme.TravelDiary">
+
+        <item name="android:fontFamily">@font/gotham_book</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+
+
+    </style>
 
     <style name="Theme.TravelDiary.NoActionBar">
         <item name="windowActionBar">false</item>
@@ -23,9 +30,8 @@
 
     <style name="RoundedImageViewShape">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">16dp</item>
+        <item name="cornerSize">45dp</item>
     </style>
-
 
 
 </resources>

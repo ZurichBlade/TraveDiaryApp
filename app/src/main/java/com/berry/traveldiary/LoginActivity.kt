@@ -1,30 +1,30 @@
 package com.berry.traveldiary
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.text.TextUtils
-import android.util.Log
-import android.widget.Toast
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.res.ResourcesCompat
 import com.berry.traveldiary.data.MyDatabase
 import com.berry.traveldiary.databinding.ActivityLoginBinding
-import com.berry.traveldiary.model.DiaryEntries
-import com.berry.traveldiary.model.User
+import com.berry.traveldiary.uitility.CommonUtils
 import com.berry.traveldiary.uitility.CommonUtils.PREF_LOGIN
-import com.berry.traveldiary.viewmodel.UserViewModel
+import com.berry.traveldiary.uitility.CommonUtils.delayedFunction
+import com.berry.traveldiary.uitility.CommonUtils.getStringPref
+import com.berry.traveldiary.uitility.CommonUtils.setStringPref
 import com.google.gson.Gson
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var mUserViewModel: UserViewModel
     private lateinit var myDatabase: MyDatabase
-    private val PREFERENCES: String = "MySharedPref"
-
+    private var isLoginSuccess: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,29 +35,47 @@ class LoginActivity : AppCompatActivity() {
 
 
         val loginData = getStringPref(PREF_LOGIN, this)
-        Log.d("TAG", "loginData>>$loginData")
-        if (!TextUtils.isEmpty(loginData)) {
-            val user: User = Gson().fromJson(loginData, User::class.java)
-            Log.d("TAG", "User>>$user")
 
+        if (!TextUtils.isEmpty(loginData)) {/*user is already logged in */
             //redirect to dashboard
             val intent = Intent(this, DrawerActivity::class.java)
             startActivity(intent)
             finish()
+        }
 
+        binding.ivpwdeye.setOnClickListener {
+            if (binding.edtPassword.inputType == InputType.TYPE_TEXT_VARIATION_PASSWORD) {
+                binding.edtPassword.inputType = InputType.TYPE_CLASS_TEXT
+                binding.ivpwdeye.setImageDrawable(
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_remove_red_eye_24,
+                        theme
+                    )
+                )
+            } else {
+                binding.edtPassword.inputType = InputType.TYPE_TEXT_VARIATION_PASSWORD
+                binding.ivpwdeye.setImageDrawable(
+                    ResourcesCompat.getDrawable(
+                        resources,
+                        R.drawable.baseline_visibility_off_24,
+                        theme
+                    )
+                )
+            }
         }
 
 
         binding.btnLogIn.setOnClickListener {
-
+            //to prevent multi clicks.
             it?.apply { isEnabled = false; postDelayed({ isEnabled = true }, 400) }
 
-            val userName = binding.edtUserName.text.toString()
-            val password = binding.edtPassword.text.toString()
-            if (inputCheck(userName, password)) {
-                callLogin(userName, password)
-            } else {
-                Toast.makeText(this, "Please fill out all fields.", Toast.LENGTH_LONG).show()
+            val userName = binding.edtUserName.text.toString().trim()
+            val password = binding.edtPassword.text.toString().trim()
+
+            //text validation.
+            if (isValid(it, userName, password)) {
+                callLogin(it, userName, password)
             }
         }
 
@@ -67,58 +85,48 @@ class LoginActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
     }
 
 
-    fun setStringPref(key: String, value: String, context: Context) {
-        val sharedPreferences = context.getSharedPreferences(PREFERENCES, MODE_PRIVATE)
-        val myEdit = sharedPreferences.edit()
-        // write all the data entered by the user in SharedPreference and apply
-        myEdit.putString(key, value)
-        myEdit.apply()
-    }
-
-    fun getStringPref(key: String, context: Context): String? {
-        val sharedPreferences = context.getSharedPreferences(PREFERENCES, MODE_PRIVATE)
-        return sharedPreferences.getString(key, "")
-    }
-
-
-    private fun callLogin(userName: String, password: String) {
+    private fun callLogin(view: View, userName: String, password: String) {
+        //calling in background thread.
         CoroutineScope(Dispatchers.IO).launch {
-//            myDatabase.diaryEntryDao().addDiaryEntry(DiaryEntries(0,"title","12/10/1999","daman","description"))
-
-
             if (myDatabase.userDao().isUserExists(userName, password)) {
-
+                isLoginSuccess = true
                 //get user data.
                 val userData = myDatabase.userDao().getUser(userName)
-                Log.d("TAG", ">>" + userData.email)
+                //setting data to pref.
                 setStringPref(PREF_LOGIN, Gson().toJson(userData), this@LoginActivity)
-                runOnUiThread {
-                    val intent = Intent(this@LoginActivity, DrawerActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-
             } else {
-                Log.d("TAG", "user not  exist")
-                runOnUiThread {
-                    Toast.makeText(
-                        this@LoginActivity,
-                        "Invalid Username or password.",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
+                isLoginSuccess = false
             }
+        }.invokeOnCompletion {
+            if (isLoginSuccess) {
 
+                runBlocking {
+                    delayedFunction()
+                }
 
+                val intent = Intent(this@LoginActivity, DrawerActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                CommonUtils.showCustomSnackBar(view, "Invalid Username or password")
+            }
         }
     }
 
-    private fun inputCheck(username: String, password: String): Boolean {
-        return !(TextUtils.isEmpty(username) && TextUtils.isEmpty(password))
+
+    private fun isValid(view: View, userName: String, password: String): Boolean {
+        return if (TextUtils.isEmpty(userName)) {
+            CommonUtils.showCustomSnackBar(view, "Please enter username")
+            false
+        } else if (TextUtils.isEmpty(password)) {
+            CommonUtils.showCustomSnackBar(view, "Please enter password")
+            false
+        } else {
+            true
+        }
     }
 
 }

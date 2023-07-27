@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.FragmentManager
 import com.google.android.material.datepicker.MaterialDatePicker
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.delay
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -45,7 +46,7 @@ object CommonUtils {
 
     }
 
-    fun showToast(view: View, message: String) {
+    fun showCustomSnackBar(view: View, message: String) {
         Snackbar.make(view, message, Snackbar.LENGTH_LONG)
             .setAction("Action", null)
             .show()
@@ -84,11 +85,21 @@ object CommonUtils {
             calendar.timeInMillis = selectedDateInMillis
             // Do something with the selected date
             // For example, display the selected date in a TextView
-            textView.text = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
+            textView.text =
+                SimpleDateFormat("dd/MM/yyyy", Locale.getDefault()).format(calendar.time)
         }
 
         // Show the date picker dialog
         datePicker.show(supportFragmentManager, "DATE_PICKER_TAG")
+    }
+
+    fun isEmailValid(email: String): Boolean {
+        val emailPattern = Regex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")
+        return emailPattern.matches(email)
+    }
+
+    suspend fun delayedFunction() {
+        delay(500)
     }
 
 }

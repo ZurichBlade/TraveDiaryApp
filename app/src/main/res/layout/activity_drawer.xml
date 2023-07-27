@@ -19,18 +19,48 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
+        android:background="@color/colordarkblue"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header_drawer"
+        app:itemIconTint="@color/white"
+        app:itemTextColor="@color/white"
         app:menu="@menu/activity_main_drawer">
 
-        <TextView
-            android:id="@+id/btnLogout"
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/clLogout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="bottom"
-            android:padding="16dp"
-            android:src="@drawable/ic_menu_camera"
-            android:text="Log out" />
+            android:layout_marginStart="30dp"
+            android:layout_marginBottom="30dp">
+
+            <androidx.appcompat.widget.AppCompatImageView
+                android:id="@+id/logout"
+                android:layout_width="26dp"
+                android:layout_height="30dp"
+                android:src="@drawable/baseline_logout_24"
+                android:tint="@color/white"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
+
+            <TextView
+                android:id="@+id/btnLogout"
+                android:layout_width="wrap_content"
+                android:layout_height="0dp"
+                android:layout_marginStart="10dp"
+                android:gravity="center"
+                android:text="Log out"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@+id/logout"
+                app:layout_constraintStart_toEndOf="@+id/logout"
+                app:layout_constraintTop_toTopOf="@+id/logout" />
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     </com.google.android.material.navigation.NavigationView>
 

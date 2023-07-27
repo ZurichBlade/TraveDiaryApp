@@ -236,8 +236,6 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
         } else {
             true
         }
-
-
     }
 
 

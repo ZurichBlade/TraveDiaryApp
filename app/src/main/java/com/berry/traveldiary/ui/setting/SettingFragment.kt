@@ -63,9 +63,9 @@ class SettingFragment : Fragment() {
 
         binding.swNotif.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked) {
-                CommonUtils.showToast(buttonView, "Notification Turned ON")
+                CommonUtils.showCustomSnackBar(buttonView, "Notification Turned ON")
             } else {
-                CommonUtils.showToast(buttonView, "Notification Turned OFF")
+                CommonUtils.showCustomSnackBar(buttonView, "Notification Turned OFF")
             }
         }
 
@@ -96,7 +96,7 @@ class SettingFragment : Fragment() {
             val uri: Uri = data?.data!!
 
             CommonUtils.setStringPref(PREF_USER_IMG, uri.toString(), requireContext())
-            CommonUtils.showToast(binding.root.rootView, "Profile Image Updated Successfully.")
+            CommonUtils.showCustomSnackBar(binding.root.rootView, "Profile Image Updated Successfully.")
 
         } else if (resultCode == ImagePicker.RESULT_ERROR) {
             Toast.makeText(requireContext(), ImagePicker.getError(data), Toast.LENGTH_SHORT).show()
@@ -125,16 +125,16 @@ class SettingFragment : Fragment() {
                         CoroutineScope(Dispatchers.IO).launch {
                             myDatabase.userDao().updatePassword(userId, nPass)
                         }.invokeOnCompletion {
-                            CommonUtils.showToast(
+                            CommonUtils.showCustomSnackBar(
                                 view, "Password Updated Successfully."
                             )
                             dialog.dismiss()
                         }
                     } else {
-                        CommonUtils.showToast(view, "Current Password Dose not match.")
+                        CommonUtils.showCustomSnackBar(view, "Current Password Dose not match.")
                     }
                 } else {
-                    CommonUtils.showToast(view, "Password Can't be empty.")
+                    CommonUtils.showCustomSnackBar(view, "Password Can't be empty.")
                 }
 
 

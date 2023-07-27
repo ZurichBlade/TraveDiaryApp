@@ -78,7 +78,7 @@ class PhotoGalleryActivity : AppCompatActivity() {
                         val newPosition = adapter.itemCount - 1
                         binding.viewPager.setCurrentItem(newPosition, true)
                     } else {
-                        CommonUtils.showToast(view, "You can't add more than 4 photos.")
+                        CommonUtils.showCustomSnackBar(view, "You can't add more than 4 photos.")
                     }
                 } else {
                     ImagePicker.with(this@PhotoGalleryActivity)
@@ -112,22 +112,22 @@ class PhotoGalleryActivity : AppCompatActivity() {
                     }.invokeOnCompletion {
                         runOnUiThread {
                             adapter.notifyDataSetChanged()
-                            CommonUtils.showToast(view, "Deleted Successfully..")
+                            CommonUtils.showCustomSnackBar(view, "Deleted Successfully..")
                         }
                     }
 
                 } else {
 
                     if (imagepath == NO_IMAGE) {
-                        CommonUtils.showToast(view, "Please add an Image")
+                        CommonUtils.showCustomSnackBar(view, "Please add an Image")
                     } else if (desc.isEmpty()) {
-                        CommonUtils.showToast(view, "Please Enter Caption")
+                        CommonUtils.showCustomSnackBar(view, "Please Enter Caption")
                     } else {
                         val photos = Photos(position, entryId, imagepath, desc)
                         CoroutineScope(Dispatchers.IO).launch {
                             myDatabase.photosDao().addPhotoData(photos)
                         }.invokeOnCompletion {
-                            CommonUtils.showToast(
+                            CommonUtils.showCustomSnackBar(
                                 view,
                                 "Saved Successfully.."
                             )
