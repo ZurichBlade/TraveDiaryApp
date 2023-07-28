@@ -96,7 +96,10 @@ class SettingFragment : Fragment() {
             val uri: Uri = data?.data!!
 
             CommonUtils.setStringPref(PREF_USER_IMG, uri.toString(), requireContext())
-            CommonUtils.showCustomSnackBar(binding.root.rootView, "Profile Image Updated Successfully.")
+            CommonUtils.showCustomSnackBar(
+                binding.root.rootView,
+                "Profile Image Updated Successfully."
+            )
 
         } else if (resultCode == ImagePicker.RESULT_ERROR) {
             Toast.makeText(requireContext(), ImagePicker.getError(data), Toast.LENGTH_SHORT).show()

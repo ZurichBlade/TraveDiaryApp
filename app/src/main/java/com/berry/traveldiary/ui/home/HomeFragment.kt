@@ -31,7 +31,6 @@ import kotlinx.coroutines.launch
 class HomeFragment : Fragment() {
 
     private var _binding: FragmentHomeBinding? = null
-    private lateinit var homeViewModel: HomeViewModel
     private var diaryEntriesList: MutableList<DiaryEntries> = mutableListOf()
     private lateinit var myDatabase: MyDatabase
     private lateinit var listAdapter: ListAdapter

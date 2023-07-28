@@ -10,10 +10,12 @@ import android.location.Geocoder
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.net.Uri
 import android.os.Bundle
 import android.text.TextUtils
 import android.util.Log
 import android.view.View
+import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.berry.traveldiary.data.MyDatabase
@@ -21,6 +23,7 @@ import com.berry.traveldiary.databinding.ActivityDiaryEntryBinding
 import com.berry.traveldiary.model.DiaryEntries
 import com.berry.traveldiary.model.User
 import com.berry.traveldiary.uitility.CommonUtils
+import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.LocationRequest.PRIORITY_HIGH_ACCURACY
@@ -43,6 +46,7 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
     private lateinit var myDatabase: MyDatabase
     lateinit var locationManager: LocationManager
     private val LOCATION_REQUEST_CODE = 1001
+    private var SelectedImageUri: String = ""
 
     companion object {
         private const val LOCATION_PERMISSION_REQUEST_CODE = 1001
@@ -59,15 +63,16 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-
+        binding.ivBack.setOnClickListener {
+            onBackPressedDispatcher.onBackPressed()
+        }
 
         checkLocationSettings()
 
 
         // Check for location permissions and request if not granted
         if (ActivityCompat.checkSelfPermission(
-                this,
-                Manifest.permission.ACCESS_FINE_LOCATION
+                this, Manifest.permission.ACCESS_FINE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
             ActivityCompat.requestPermissions(
@@ -83,10 +88,23 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
             CommonUtils.openDatePicker(binding.edtDate, supportFragmentManager)
         }
 
+        binding.accountImage.setOnClickListener {
+            ImagePicker.with(this@DiaryEntryActivity)
+                .crop()                    //Crop image(Optional), Check Customization for more option
+                .compress(1024)            //Final image size will be less than 1 MB(Optional)
+                .maxResultSize(
+                    1080, 1080
+                )    //Final image resolution will be less than 1080 x 1080(Optional)
+                .start(102)
+        }
 
         //saving the diary entry
         binding.btnSave.setOnClickListener {
             it?.apply { isEnabled = false; postDelayed({ isEnabled = true }, 400) }
+
+            //to dismiss keyboard
+            val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(currentFocus?.windowToken, 0)
             saveDiaryEntry(it)
         }
 
@@ -97,8 +115,7 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
             priority = PRIORITY_HIGH_ACCURACY
         }
 
-        val builder = LocationSettingsRequest.Builder()
-            .addLocationRequest(locationRequest)
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
             .setAlwaysShow(true)
 
         val client: SettingsClient = LocationServices.getSettingsClient(this)
@@ -120,8 +137,7 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
                             val resolvable: ResolvableApiException =
                                 exception as ResolvableApiException
                             resolvable.startResolutionForResult(
-                                this@DiaryEntryActivity,
-                                LOCATION_REQUEST_CODE
+                                this@DiaryEntryActivity, LOCATION_REQUEST_CODE
                             )
                         } catch (sendEx: IntentSender.SendIntentException) {
                             // Ignore the error.
@@ -187,6 +203,7 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
         val date = binding.edtDate.text.toString()
         val location = binding.edtLocation.text.toString()
         val desc = binding.edtDesc.text.toString()
+        val img = SelectedImageUri
 
 
         val loginData = CommonUtils.getStringPref(CommonUtils.PREF_LOGIN, this)
@@ -195,7 +212,7 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
             val user: User = Gson().fromJson(loginData, User::class.java)
 
 
-            val diaryEntries = DiaryEntries(0, title, date, location, desc, user.id)
+            val diaryEntries = DiaryEntries(0, title, date, location, desc, user.id, img)
 
 
             CoroutineScope(Dispatchers.IO).launch {
@@ -253,7 +270,6 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == LOCATION_REQUEST_CODE) {
             if (resultCode == Activity.RESULT_OK) {
-
                 startLocationUpdates()
 
                 // The user has enabled the location settings.
@@ -262,6 +278,13 @@ class DiaryEntryActivity : AppCompatActivity(), LocationListener {
                 binding.progressBar.visibility = View.GONE
                 // The user has not enabled the location settings.
                 // You can handle this situation as per your app's requirement.
+            }
+        }
+        if (requestCode == 102) {
+            if (resultCode == Activity.RESULT_OK) {
+                val uri: Uri = data?.data!!
+                SelectedImageUri = uri.toString()
+                binding.accountImage.setImageURI(uri)
             }
         }
     }

@@ -30,8 +30,32 @@
 
     <style name="RoundedImageViewShape">
         <item name="cornerFamily">rounded</item>
-        <item name="cornerSize">45dp</item>
+        <item name="cornerSize">50dp</item>
     </style>
+
+    <style name="CircularImageViewShape">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">10dp</item>
+    </style>
+
+
+    <!-- res/values/styles.xml -->
+    <style name="CustomToolbarTitleText">
+        <item name="android:fontFamily">@font/gotham_medium</item>
+        <item name="android:textSize">22sp</item>
+        <!-- Add other text-related style attributes as needed -->
+    </style>
+
+
+    <!-- res/values/styles.xml -->
+    <style name="AppTextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.FilledBox">
+        <item name="boxBackgroundMode">filled</item>
+        <item name="boxStrokeColor">@color/black</item>
+        <item name="boxBackgroundColor">@color/white</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">@font/gotham_book</item>
+    </style>
+
 
 
 </resources>

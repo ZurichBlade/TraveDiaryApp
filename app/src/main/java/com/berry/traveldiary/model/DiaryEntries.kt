@@ -21,4 +21,5 @@ data class DiaryEntries(
     val location: String,
     val description: String,
     val id:Int,
+    val coverImg: String
 )

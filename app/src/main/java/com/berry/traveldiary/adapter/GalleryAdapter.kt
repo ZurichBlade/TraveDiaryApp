@@ -3,7 +3,6 @@ package com.berry.traveldiary.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import androidx.core.net.toUri
@@ -11,6 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.berry.traveldiary.R
 import com.berry.traveldiary.model.Photos
 import com.berry.traveldiary.uitility.CommonUtils
+import com.google.android.material.imageview.ShapeableImageView
 
 class GalleryAdapter(
 //    private val images: List<Int>,
@@ -24,11 +24,11 @@ class GalleryAdapter(
 
 
     class GalleryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView: ImageView = itemView.findViewById(R.id.imageView)
+        val imageView: ShapeableImageView = itemView.findViewById(R.id.imageView)
         val caption: EditText = itemView.findViewById(R.id.tvCaption)
-        val btnUpdate: Button = itemView.findViewById(R.id.btnUpdate)
-        val btnAddNew: Button = itemView.findViewById(R.id.btnAddblank)
-        val btnDelete: Button = itemView.findViewById(R.id.btnDelete)
+        val btnUpdate: ImageView = itemView.findViewById(R.id.btnUpdate)
+        val btnAddNew: ImageView = itemView.findViewById(R.id.btnAddblank)
+        val btnDelete: ImageView = itemView.findViewById(R.id.btnDelete)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryViewHolder {
@@ -40,7 +40,7 @@ class GalleryAdapter(
     override fun onBindViewHolder(holder: GalleryViewHolder, position: Int) {
 
         if (photosList[position].imagePath == CommonUtils.NO_IMAGE) {
-            holder.imageView.setImageDrawable(holder.btnUpdate.resources.getDrawable(R.drawable.ic_menu_gallery))
+//            holder.imageView.setImageDrawable(holder.btnUpdate.resources.getDrawable(R.drawable.ic_menu_gallery))
         } else {
             holder.imageView.setImageURI(photosList[position].imagePath.toUri())
         }
@@ -97,7 +97,14 @@ class GalleryAdapter(
     }
 
     interface SaveClickListener {
-        fun mSaveClickListener(position: Int,photoId: Int, imagepath: String, desc: String, view: View,isforDelete: Boolean)
+        fun mSaveClickListener(
+            position: Int,
+            photoId: Int,
+            imagepath: String,
+            desc: String,
+            view: View,
+            isforDelete: Boolean
+        )
     }
 
 

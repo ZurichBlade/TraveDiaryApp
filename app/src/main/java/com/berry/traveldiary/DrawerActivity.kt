@@ -1,6 +1,7 @@
 package com.berry.traveldiary
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.text.TextUtils
 import android.view.View
@@ -38,6 +39,11 @@ class DrawerActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.appBarDrawer.toolbar)
 
+
+        // Set the color for the Status Bar
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            window.statusBarColor = resources.getColor(R.color.loginThemeColor, theme)
+        }
 
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView

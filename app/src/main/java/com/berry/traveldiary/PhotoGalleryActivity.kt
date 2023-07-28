@@ -143,7 +143,7 @@ class PhotoGalleryActivity : AppCompatActivity() {
         if (resultCode == Activity.RESULT_OK) {
             //Image Uri will not be null for RESULT_OK
             val uri: Uri = data?.data!!
-            
+
             if (imagePosition != -1) {
                 imagesList[imagePosition].imagePath = uri.toString()
                 adapter.notifyDataSetChanged()
