@@ -15,4 +15,4 @@ The Travel Diary App is a mobile application designed to be your digital compani
 
 
 ## Note
-- This project demonstrates the basic integration of Room database in Android using Kotlin language and view-based layouts.
+- This project demonstrates the basic integration of Room database in Android using Kotlin language and XML-based layouts.
