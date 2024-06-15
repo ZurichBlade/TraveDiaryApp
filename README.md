@@ -14,5 +14,51 @@ The Travel Diary App is a mobile application designed to be your digital compani
 - GPS Location Integration: Automatically fetching the current location when creating a diary entry.
 
 
+## Query Examples
+
+Defining a table wiht @Entity 
+
+```bash
+ @Entity(tableName = "user_table")
+data class User(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int,
+    val username: String,
+    val email: String,
+    val password: String
+)
+```
+
+Creating and Initializing a Database annotate with @Database 
+
+```bash
+@Database(entities = [User::class, DiaryEntries::class, Photos::class], version = 1, exportSchema = false)
+```
+```bash
+  fun getDatabase(context: Context): MyDatabase {
+
+            INSTANCE?.let {
+                return it
+            }
+            synchronized(this) {
+                val instance = Room.databaseBuilder(
+                    context.applicationContext,
+                    MyDatabase::class.java,
+                    "my_database"
+                ).build()
+                INSTANCE = instance
+                return instance
+            }
+        }
+```
+
+Query to check if user already exist under a interface using @Dao annotation
+
+```bash
+   @Query("SELECT EXISTS(SELECT * FROM user_table WHERE userName = :userName and password = :password)")
+    suspend fun isUserExists(userName: String?, password: String): Boolean
+```
+
+
 ## Note
 - This project demonstrates the basic integration of Room database in Android using Kotlin language and XML-based layouts.
